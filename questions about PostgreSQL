@@ -1,0 +1,242 @@
+------------------- PostgreSQL ------------------------------------------
+--> Что такое PostgreSQL?
+
+--> Какие основные характеристики PostgreSQL?
+
+--> Как установить PostgreSQL и какие основные настройки требуют внимания при установке?
+
+--> Что такое схема в PostgreSQL?
+
+--> Как создать индекс в PostgreSQL и какие виды индексов поддерживаются?
+
+--> Как выполнить базовые операции CRUD (Create, Read, Update, Delete) в PostgreSQL?
+
+--> Что такое транзакция в PostgreSQL и как ее использовать?
+
+--> Что такое представление в PostgreSQL?
+
+--> Как выполнить резервное копирование и восстановление базы данных PostgreSQL?
+
+--> Как оптимизировать запросы в PostgreSQL?
+
+--> Что такое функция в PostgreSQL и как ее создать?
+
+--> Как работать с триггерами в PostgreSQL?
+
+--> Что такое расширения (extensions) в PostgreSQL?
+
+--> Как использовать инструменты мониторинга и управления PostgreSQL (например, pgAdmin)?
+
+------------------- sqlalchemy ------------------------------------------
+
+--> Что такое sqlalchemy?
+    - SQLAlchemy - это популярная библиотека для работы с базами данных в Python. 
+    Она предоставляет ORM (Object-Relational Mapping) для удобной работы с данными 
+    в базах данных с использованием объектно-ориентированного подхода. 
+    1) ORM (Object-Relational Mapping):
+    - SQLAlchemy позволяет вам взаимодействовать с базой данных, используя 
+    объекты Python, которые отображаются на записи в базе данных. Это облегчает 
+    работу с базой данных, скрывая сложности SQL-запросов.
+    2) Core и ORM:
+    - SQLAlchemy разделяется на две основные части: SQLAlchemy Core для 
+    низкоуровневых операций с базой данных и SQLAlchemy ORM для работы с
+    объектами. Вы можете использовать их по отдельности или вместе.
+    3) Сессии:
+    - Сессии SQLAlchemy предоставляют механизм отслеживания изменений
+    в объектах и синхронизации этих изменений с базой данных. Сессии
+    управляют жизненным циклом объектов и обеспечивают транзакционность.
+    4) Модели данных:
+    - Модели данных SQLAlchemy представляют собой классы Python, которые
+    отображаются на таблицы базы данных. Они определяются с использованием
+    декларативного (declarative) или классического (classical) стиля.
+    5) Выражения SQL:
+    - SQLAlchemy предоставляет SQL-выражения, которые можно использовать
+    для построения SQL-запросов с использованием высокоуровневого API,
+    что делает их более читаемыми и легкими в поддержке.
+    6) Миграции:
+    - SQLAlchemy поддерживает механизм миграции данных, который облегчает
+    обновление схемы базы данных при изменении моделей данных.
+
+--> Как устанавливается sqlalchemy?
+        pip install SQLAlchemy
+
+--> Что такое Alembic?
+    - Alembic - это инструмент для управления миграциями баз данных в Python. 
+    Он интегрируется с SQLAlchemy и предоставляет механизм для изменения структуры
+    базы данных с течением времени, что особенно полезно в контексте развивающихся проектов.
+    1) Миграции:
+    Alembic позволяет определить изменения в базе данных в виде миграций. Миграции
+    представляют собой последовательные шаги, которые могут добавлять, изменять
+    или удалять таблицы, столбцы и другие элементы базы данных.
+    2) Версионирование:
+    Каждая миграция имеет свой уникальный идентификатор версии, который
+    обеспечивает порядок применения миграций. Alembic автоматически отслеживает
+    текущую версию базы данных.
+    3) Скрипты миграций:
+    Миграции создаются в виде Python-скриптов, описывающих изменения базы данных.
+    Эти скрипты могут быть созданы автоматически с использованием Alembic CLI.
+    4) Интеграция с SQLAlchemy:
+    Alembic интегрируется с SQLAlchemy, что обеспечивает единый опыт
+    работы с базой данных и моделями данных в проекте.
+    5) Контроль версий:
+    Alembic легко интегрируется с системами контроля версий (например,
+    Git) для управления историей миграций.
+
+--> Как устанавливается Alembic?
+    1) Установка Alembic: pip install alembic
+    2) Инициализация проекта Alembic: alembic init my_migration_project
+    3) Определение модели данных SQLAlchemy:
+        # В файле models.py
+        from sqlalchemy import Column, Integer, String
+        from sqlalchemy.ext.declarative import declarative_base
+        Base = declarative_base()
+        class User(Base):
+            __tablename__ = 'users'
+            id = Column(Integer, primary_key=True)
+            name = Column(String)
+    4) Генерация миграции: alembic revision --autogenerate -m "create user table"
+    5) Применение миграции: alembic upgrade head
+
+--> Чем отличается Core от ORM в SQLAlchemy?
+    - SQL-выражения и запросы: Core предоставляет выражения и объекты для построения
+    SQL-запросов и операций без использования объектов Python. Это более
+    низкоуровневый подход, который предоставляет полный контроль над генерацией SQL.
+    - Отображение объектов: ORM предоставляет средства для отображения объектов
+    Python на записи базы данных, обеспечивая более высокоуровневый и удобный
+    интерфейс. Классы Python представляют таблицы базы данных, а экземпляры
+    этих классов соответствуют отдельным записям.
+
+--> Как создать соединение с базой данных с использованием SQLAlchemy?
+    1) Импортируйте необходимые модули:
+        - Core API: from sqlalchemy import create_engine
+        - ORM API:  from sqlalchemy import create_engine
+                    from sqlalchemy.orm import sessionmaker
+    2) Создайте объект соединения (Core API):
+    - Для Core API создайте объект Engine, представляющий соединение с базой
+    данных. Вам нужно предоставить строку подключения к вашей базе данных:
+        # Пример строки подключения SQLite (замените на свою базу данных)
+        db_url = "sqlite:///example.db"        
+        # Создайте объект Engine
+        engine = create_engine(db_url)
+    3) Создайте объект соединения и выполните запрос (Core API):
+    - Если нужно, создайте объект Connection и выполните запрос к базе данных:
+        with engine.connect() as connection:
+        result = connection.execute("SELECT * FROM your_table")
+        for row in result:
+            print(row)
+    4) Создайте сессию (ORM API):
+    Для ORM API создайте объект Engine и объект Session, который будет
+    использоваться для взаимодействия с базой данных:
+        # Пример строки подключения SQLite (замените на свою базу данных)
+        db_url = "sqlite:///example.db"
+        # Создайте объект Engine
+        engine = create_engine(db_url)
+        # Создайте объект Session
+        Session = sessionmaker(bind=engine)
+    5) Создайте объект сессии и выполните запрос (ORM API):
+    - Создайте объект Session, который будет использоваться для выполнения операций
+    с базой данных, таких как добавление, обновление и удаление объектов:
+        # Создайте объект сессии
+        session = Session()
+        # Пример выполнения запроса с использованием ORM
+        results = session.query(YourModel).all()
+        for result in results:
+            print(result)
+
+--> Как создать таблицу в SQLAlchemy?
+    - В SQLAlchemy создание таблицы можно выполнить с использованием объектов модели
+    в случае использования ORM API (Object Relational Mapper) или с использованием
+    объекта Table в случае использования Core API (SQL Expression Language).
+    - Использование ORM API:
+        from sqlalchemy import create_engine, Column, Integer, String, Sequence
+        from sqlalchemy.ext.declarative import declarative_base
+        from sqlalchemy.orm import sessionmaker
+        # Определение базового класса модели
+        Base = declarative_base()
+        # Определение модели (класса) для таблицы
+        class YourModel(Base):
+            __tablename__ = 'your_table'
+            id = Column(Integer, Sequence('user_id_seq'), primary_key=True)
+            name = Column(String(50))
+            description = Column(String(100))
+        # Пример строки подключения SQLite (замените на свою базу данных)
+        db_url = "sqlite:///example.db"
+        # Создание объекта Engine
+        engine = create_engine(db_url)
+        # Создание таблицы
+        Base.metadata.create_all(engine)
+    - Использование Core API:
+        from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String
+        # Пример строки подключения SQLite (замените на свою базу данных)
+        db_url = "sqlite:///example.db"
+        # Создание объекта Engine
+        engine = create_engine(db_url)
+        # Создание объекта MetaData
+        metadata = MetaData()
+        # Определение таблицы
+        your_table = Table('your_table', metadata,
+                           Column('id', Integer, primary_key=True),
+                           Column('name', String(50)),
+                           Column('description', String(100))
+                           )
+        # Создание таблицы
+        metadata.create_all(engine)
+
+--> Как выполнить запрос к базе данных с использованием SQLAlchemy?
+    - Для выполнения запроса к базе данных с использованием SQLAlchemy, 
+    вы можете воспользоваться объектами сессии для ORM-запросов или 
+    объектом engine для SQL-выражений.
+    ORM API:
+        from sqlalchemy import create_engine, Column, Integer, String, Sequence
+        from sqlalchemy.ext.declarative import declarative_base
+        from sqlalchemy.orm import sessionmaker
+        # Определение базового класса модели
+        Base = declarative_base()
+        # Определение модели (класса) для таблицы
+        class YourModel(Base):
+            __tablename__ = 'your_table'
+            id = Column(Integer, Sequence('user_id_seq'), primary_key=True)
+            name = Column(String(50))
+            description = Column(String(100))
+        # Пример строки подключения SQLite (замените на свою базу данных)
+        db_url = "sqlite:///example.db"
+        # Создание объекта Engine
+        engine = create_engine(db_url)
+        # Создание объекта сессии
+        Session = sessionmaker(bind=engine)
+        session = Session()
+        # Выполнение запроса
+        result = session.query(YourModel).filter_by(name='example').first()
+        # Вывод результата запроса
+        print(result)
+    Core API:
+        from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
+        # Пример строки подключения SQLite (замените на свою базу данных)
+        db_url = "sqlite:///example.db"
+        # Создание объекта Engine
+        engine = create_engine(db_url)
+        # Создание объекта MetaData
+        metadata = MetaData()
+        # Определение таблицы
+        your_table = Table('your_table', metadata,
+                           Column('id', Integer, primary_key=True),
+                           Column('name', String(50)),
+                           Column('description', String(100))
+                           )
+        # Создание объекта соединения
+        connection = engine.connect()
+        # Выполнение запроса
+        stmt = select([your_table]).where(your_table.c.name == 'example')
+        result = connection.execute(stmt).fetchall()
+        # Вывод результата запроса
+        print(result)
+
+--> Что такое сессия SQLAlchemy и как ее использовать?
+
+
+--> Какие типы отношений поддерживаются в SQLAlchemy?
+
+--> Как в SQLAlchemy обеспечивается безопасность от инъекций SQL?
+
+--> Как использовать индексы в SQLAlchemy?
+

@@ -1,0 +1,177 @@
+
+Лямбды
+___________________________________
+add = lambda x, y: x + y
+result = add(3, 5)
+print(result)  # Вывод: 8
+
+___________________________________
+numbers = [1, 2, 3, 4, 5]
+squared = map(lambda x: x ** 2, numbers)
+print(list(squared))  # Вывод: [1, 4, 9, 16, 25]
+
+___________________________________
+numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+even_numbers = filter(lambda x: x % 2 == 0, numbers)
+print(list(even_numbers))  # Вывод: [2, 4, 6, 8, 10]
+
+___________________________________
+words = ["apple", "banana", "cherry", "date", "elderberry"]
+sorted_words = sorted(words, key=lambda x: len(x))
+print(sorted_words)  # Вывод: ['date', 'apple', 'banana', 'cherry', 'elderberry']
+___________________________________
+
+Функции с переменным числом аргументов:
+
+def print_args_and_kwargs(*args, **kwargs):
+    for arg in args:
+        print(arg)
+    for key, value in kwargs.items():
+        print(f"{key}: {value}")
+___________________________________
+
+Итератор
+class MyIterator:
+    def __init__(self, data):
+        self.data = data
+        self.index = 0
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.index < len(self.data):
+            result = self.data[self.index]
+            self.index += 1
+            return result
+        else:
+            raise StopIteration
+
+my_iter = MyIterator([1, 2, 3])
+for item in my_iter:
+    print(item)
+___________________________________
+Генератор
+def my_generator(data):
+    for item in data:
+        yield item
+
+gen = my_generator([1, 2, 3])
+for item in gen:
+    print(item)
+___________________________________
+
+Декораторы
+___________________________________
+def repeat(n):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            for _ in range(n):
+                result = func(*args, **kwargs)
+            return result
+        return wrapper
+    return decorator
+
+@repeat(3)
+def say_hello():
+    print("Hello!")
+___________________________________
+import functools
+def log_function_call(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        print(f"Вызов функции {func.__name__} с аргументами {args}, {kwargs}")
+        result = func(*args, **kwargs)
+        print(f"Функция {func.__name__} завершена. Результат: {result}")
+        return result
+    return wrapper
+___________________________________
+
+Фабрика декораторов
+
+def decorator_factory(prefix):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            print(f"{prefix}: Вызов функции {func.__name__}")
+            result = func(*args, **kwargs)
+            print(f"{prefix}: Функция {func.__name__} завершена. Результат: {result}")
+            return result
+        return wrapper
+    return decorator
+
+# Создаем декораторы с разными префиксами
+log_with_prefix_a = decorator_factory("LOG_A")
+log_with_prefix_b = decorator_factory("LOG_B")
+
+# Применяем декораторы к функциям
+@log_with_prefix_a
+def add_numbers(a, b):
+    return a + b
+
+@log_with_prefix_b
+def multiply_numbers(x, y):
+    return x * y
+
+# Вызываем функции
+result_add = add_numbers(3, 5)
+result_multiply = multiply_numbers(4, 6)
+
+
+Менеджеры контекста
+with open("example.txt", "w") as file:
+    file.write("Hello, World!")
+___________________________________
+class MyContextManager:
+    def __enter__(self):
+        print("Входим в контекст")
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        print("Покидаем контекст")
+
+# Использование собственного менеджера контекста
+with MyContextManager():
+    print("Внутри контекста")
+
+Исключения
+try:
+    # Код, который может вызвать исключение
+    result = 10 / 0
+except ZeroDivisionError as e:
+    # Обработка исключения
+    print(f"Ошибка: {e}")
+else:
+    # Блок выполняется, если исключение не возникло
+    print("Результат:", result)
+finally:
+    # Блок, который выполняется всегда, независимо от того, возникло исключение или нет
+    print("Завершение блока try-except")
+
+
+метакласс
+class MyMeta(type):
+    def __new__(cls, name, bases, attrs):
+        # Модификация атрибутов класса перед созданием
+        attrs['modified_attribute'] = 42
+        return super().__new__(cls, name, bases, attrs)
+
+class MyClass(metaclass=MyMeta):
+    original_attribute = 10
+
+# Создание экземпляра класса
+obj = MyClass()
+
+# Вывод модифицированного атрибута
+print(obj.modified_attribute)  # Вывод: 42
+
+
+Модель Django
+# models.py
+from django.db import models
+
+class Post(models.Model):
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    pub_date = models.DateTimeField('date published')
+
+    def __str__(self):
+        return self.title

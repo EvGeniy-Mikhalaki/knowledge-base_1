@@ -1,0 +1,598 @@
+______________________________________________________________________________________________________________________________________________________________
+'''дан бинарный масив из нулей и единиц, найти максимальную длину подмассива из единиц при условии, что один ноль можно заменить на единицу'''
+
+# Функция, которая находит максимальную длину подмассива из единиц в массиве.
+def find_max_length_of_ones(arr):
+    max_len = 0          # Инициализация переменной для максимальной длины подмассива
+    current_len = 0      # Инициализация переменной для текущей длины текущего подмассива
+
+    for num in arr:
+        if num == 1:
+            current_len += 1            # Увеличиваем текущую длину, если встречается 1
+            max_len = max(max_len, current_len)  # Обновляем максимальную длину, если текущая длина больше
+        else:
+            current_len = 0     # Сбрасываем текущую длину, если встречается 0
+
+    return max_len
+
+
+# Функция, которая итеративно проходит по массиву, заменяет 0 на 1, вызывает функцию find_max_length_of_ones,
+# заносит результат в счетчик, затем возвращает значение обратно на 0,
+# и если результат больше текущего значения счетчика, обновляет его.
+def find_max_length_with_one_replacement(arr):
+    max_len = 0
+
+    for i in range(len(arr)):
+        if arr[i] == 0:
+            arr[i] = 1  # Заменяем 0 на 1
+            current_len = find_max_length_of_ones(arr)
+            max_len = max(max_len, current_len)
+            arr[i] = 0  # Возвращаем обратно 1 на 0
+
+    return max_len
+
+# Пример использования:
+binary_array = [1, 0, 1, 1, 0, 1, 1, 1, 0, 1]
+find_max_length_with_one_replacement(binary_array)
+# Дано [0,0,0,1,0,1,1,1,1,0,1]
+______________________________________________________________________________________________________________________________________________________________
+'''Учитывая массив целых чисел nums и целочисленный целевой показатель, верните индексы двух чисел таким образом, чтобы они складывались в целевой показатель.'''
+!!! Алгоритм Arrays & Hashing - Массивы и хэширование
+
+class Solution(object):
+    def twoSum(self, nums, target):
+        results = []
+        a = 0
+        for num in nums:
+            a = target - num
+            if a in nums:
+                results.append(num)
+                results.append(a)
+        return results
+
+class Solution(object):
+    def twoSum(self, nums, target):
+        results = {} 
+        for i, num in enumerate(nums):
+            dif = target - num
+            if dif in results:
+                return [results[dif], i]
+            results[num] = i    
+        return []
+
+______________________________________________________________________________________________________________________________________________________________
+'''Учитывая строку s, найдите длину самой длинной подстроки без повторяющихся символов.'''
+Input: s = "abcabcbb"
+Output: 3
+Explanation: The answer is "abc", with the length of 3.
+
+class Solution(object):
+    def lengthOfLongestSubstring(self, s):
+        res_str = ""
+        res_list = []
+        _max = 0
+        for i, symb in enumerate(s):
+            res_str += symb
+            for symb_ in s[i+1:]:
+                if symb_ not in res_str:
+                    res_str += symb_
+                else:
+                    break
+            if len(res_str) > _max:
+                _max = len(res_str)
+            res_str = ""
+        return _max
+# через множество и while
+class Solution(object):
+    def lengthOfLongestSubstring(self, s):
+        char_set = set()
+        _max = 0
+        start = 0
+
+        for i, symb in enumerate(s):
+            while symb in char_set:
+                char_set.remove(s[start])
+                start += 1
+
+            char_set.add(symb)
+            _max = max(_max, i - start + 1)
+
+        return _max
+# через один цикл
+class Solution:
+    def lengthOfLongestSubstring(self, s: str) -> int:
+        start = result = 0
+        seen = {}
+        for i, letter in enumerate(s):
+            if seen.get(letter, -1) >= start:
+                start = seen[letter] + 1
+            result = max(result, i - start + 1)
+            seen[letter] = i
+        return result
+
+______________________________________________________________________________________________________________________________________________________________
+'''Учитывая целое число x, верните true, если x являетсяпалиндромом, и false в противном случае.'''
+Input: x = 121
+Output: true
+Input: x = -121
+Output: false
+
+class Solution(object):
+    def isPalindrome(self, x):
+        if str(x)[::-1] == str(x):
+            return True
+        return False
+
+class Solution(object):
+    def isPalindrome(self, x):
+        return str(x) == str(x)[::-1]
+    
+# След. код проверяет, что число неотрицательное и не заканчивается на 0 (за исключением случая, когда x=0), 
+# так как в таких случаях палиндромом быть не может. Затем он переворачивает число и сравнивает его с оригиналом. 
+# Если они равны, то число является палиндромом.
+
+def isPalindrome(x):
+    # Если число отрицательное или заканчивается на 0 (кроме случая x=0)
+    if x < 0 or (x % 10 == 0 and x != 0):
+        return False
+    
+    reversed_number = 0
+    original_x = x
+    
+    while x > 0:
+        digit = x % 10
+        reversed_number = reversed_number * 10 + digit
+        x //= 10
+    
+    return original_x == reversed_number
+
+______________________________________________________________________________________________________________________________________________________________
+'''Римские цифры представлены семью различными символами: I, V, X, L, C, D и M.'''
+
+class Solution(object):
+    def romanToInt(self, s):
+        roman_decryption = {"I": 1, "V": 5, "X": 10, "L": 50, "C": 100, "D": 500, "M": 1000}
+        numbs_for_sum = [0]
+        fg_cont = False
+        for i, roman_symbol in enumerate(s):
+            if fg_cont == True:
+                fg_cont = False
+                continue
+            if i != len(s)-1:
+                if roman_decryption[roman_symbol] >= roman_decryption[s[i+1]]:
+                    numbs_for_sum.append(roman_decryption[roman_symbol])
+                else:
+                    numbs_for_sum.append(roman_decryption[s[i+1]] - roman_decryption[roman_symbol])
+                    fg_cont = True
+            else:
+                numbs_for_sum.append(roman_decryption[roman_symbol])
+        
+        return sum(numbs_for_sum)
+
+# Оптимизированный выше код
+class Solution(object):
+    def romanToInt(self, s):
+        roman_decryption = {"I": 1, "V": 5, "X": 10, "L": 50, "C": 100, "D": 500, "M": 1000}
+        total = 0
+        prev_value = 0
+
+        for roman_symbol in s:
+            current_value = roman_decryption[roman_symbol]
+
+            if current_value > prev_value:
+                total += current_value - 2 * prev_value
+            else:
+                total += current_value
+
+            prev_value = current_value
+
+        return total
+
+# GPT
+def romanToInt(s):
+    roman_values = {'I': 1, 'V': 5, 'X': 10, 'L': 50, 'C': 100, 'D': 500, 'M': 1000}
+    total = 0
+    prev_value = 0
+
+    for symbol in reversed(s):
+        current_value = roman_values[symbol]
+
+        if current_value < prev_value:
+            total -= current_value
+        else:
+            total += current_value
+
+        prev_value = current_value
+
+    return total
+
+# Example usage:
+roman_numeral = "XXVII"
+result = romanToInt(roman_numeral)
+print(result)  # Output: 27
+
+# Другое решение
+class Solution:
+    def romanToInt(self, s: str) -> int:
+        translations = {
+            "I": 1,
+            "V": 5,
+            "X": 10,
+            "L": 50,
+            "C": 100,
+            "D": 500,
+            "M": 1000
+        }
+        number = 0
+        s = s.replace("IV", "IIII").replace("IX", "VIIII")
+        s = s.replace("XL", "XXXX").replace("XC", "LXXXX")
+        s = s.replace("CD", "CCCC").replace("CM", "DCCCC")
+        for char in s:
+            number += translations[char]
+        return number
+
+______________________________________________________________________________________________________________________________________________________________
+'''Напишите функцию, которая найдет самую длинную строку с общим префиксом среди массива строк. Если общего префикса нет, верните пустую строку "".'''
+res_list_prefix = []
+        if len(strs) == 1:
+            return strs[0]
+        for i, str_1 in enumerate(strs):
+            for j in range(i+1, len(strs)):
+                res_prefix = ""
+                str_2 = strs[j]
+                for k, symb in enumerate(str_1):
+                    if k <= len(str_2)-1 and symb == str_2[k]:
+                        res_prefix += symb
+                    else:
+                        break
+                res_list_prefix.append(res_prefix)
+        res_prefix = ""
+        print(res_list_prefix)
+        for pref in res_list_prefix:
+            for str_ in strs:
+                if pref != "":
+                    if pref in str_ and pref[0] == str_[0]:
+                        if len(pref) >= 2:
+                            if pref[1] == str_[1]:
+                                res_prefix = pref
+                            else:
+                                res_prefix = ""
+                                break
+                        else:
+                            res_prefix = pref
+                    else:
+                        res_prefix = ""
+                        break
+            if res_prefix != "":
+                return res_prefix
+        return res_prefix
+
+# GPT Optimizing the code that is commented out
+if not strs:
+    return ""
+min_len_str = min(strs, key=len)
+prefix = ""
+for i, char in enumerate(min_len_str):
+    if all(word[i] == char for word in strs):
+        prefix += char
+    else:
+        break
+return prefix
+
+# Другое решение
+class Solution(object):
+    def longestCommonPrefix(self, strs):
+        if len(strs) == 0:
+            return ""
+
+        base = strs[0]
+        for i in range(len(base)):
+            for word in strs[1:]:
+                if i == len(word) or word[i] != base[i]:
+                    return base[0:i]
+
+        return base
+
+______________________________________________________________________________________________________________________________________________________________
+'''Фраза является палиндромом, если после преобразования всех заглавных букв в строчные и удаления всех неалфавитно-цифровых символов она читается одинаково
+вперед и назад. Буквенно-цифровые символы включают буквы и цифры. Учитывая строку s, верните true, если это палиндром, или false в противном случае."".'''
+!!! Алгоритм Two Pointers - Два указателя
+
+Input: s = "A man, a plan, a canal: Panama"
+Output: true
+Explanation: "amanaplanacanalpanama" is a palindrome.
+
+class Solution(object):
+    def isPalindrome(self, s):
+        _s = s.lower()
+        _s = re.sub("[^A-Za-z0-9]", "", _s)
+        return  _s == _s[::-1]
+
+#GPT
+class Solution(object):
+    def isPalindrome(self, s):
+        cleaned_s = ''.join(char.lower() for char in s if char.isalnum())
+        return cleaned_s == cleaned_s[::-1]
+
+class Solution:
+    def isPalindrome(self, s: str) -> bool:
+        l = 0
+        r = len(s) - 1
+        while l < r:
+            if not s[l].isalnum():
+                l += 1
+            elif not s[r].isalnum():
+                r -= 1
+            elif s[l].lower() == s[r].lower():
+                l += 1
+                r -= 1
+            else:
+                return False
+
+        return True
+
+______________________________________________________________________________________________________________________________________________________________
+''' Вам даны два целочисленных массива nums1 и nums2, отсортированных в порядке неубывания, и два целых числа m и n, представляющие количество элементов в
+nums1 и nums2 соответственно. Объедините nums1 и nums2 в единый массив, отсортированный в порядке неубывания. Конечный отсортированный массив не должен 
+возвращаться функцией, а вместо этого храниться внутри массива nums1. Чтобы учесть это, nums1 имеет длину m + n, где первые m элементов обозначают элементы, 
+которые должны быть объединены, а последние n элементов имеют значение 0 и должны игнорироваться. nums2 имеет длину n. '''
+
+class Solution(object):
+    def merge(self, nums1, m, nums2, n):
+        while m > 0 and n > 0:
+            if nums1[m-1] > nums2[n-1]:
+                nums1[m+n-1] = nums1[m-1]
+                m -= 1
+            else: 
+                nums1[m+n-1] = nums2[n-1]
+                n -= 1
+        while n > 0:
+            nums1[n-1] = nums2[n-1]
+            n -= 1
+
+class Solution(object):
+    def merge(self, nums1, m, nums2, n):
+      for j in range(n):
+          nums1[m+j] = nums2[j]
+      nums1.sort()
+
+______________________________________________________________________________________________________________________________________________________________
+''' Учитывая массив nums размера n, верните элемент majority. Элемент majority - это элемент, который появляется более ⌊n / 2⌋ раз. Вы можете предположить, 
+что элемент majority всегда существует в массиве. '''
+
+class Solution(object):
+    def majorityElement(self, nums):
+        list_duplicates = []
+        for dig in nums:
+            if dig not in list_duplicates:
+                list_duplicates.append(dig)
+        
+        for dubdig in list_duplicates:
+            count = 0
+            for dig in nums:
+                if dubdig == dig:
+                    count += 1
+            
+            if count > len(nums)/2:
+                return dubdig
+# GPT
+class Solution(object):
+    def majorityElement(self, nums):
+        counts = {}
+        threshold = len(nums) // 2
+
+        for num in nums:
+            counts[num] = counts.get(num, 0) + 1
+            if counts[num] > threshold:
+                return num
+
+class Solution:
+    def majorityElement(self, nums: List[int]) -> int:
+        nums.sort()
+        n = len(nums)
+        return nums[n//2]
+
+class Solution(object):
+    def majorityElement(self, nums):
+        # Initialize count and majority candidate
+        count = 0
+        majority = 0
+
+        # Traverse through the list
+        for i in range(len(nums)):
+            if count == 0 and majority != nums[i]:
+                # If count is 0 and majority candidate is different from current element,
+                # update the majority candidate and set count to 1
+                majority = nums[i]
+                count += 1
+            elif majority == nums[i]:
+                # If current element is the same as the majority candidate,
+                # increment the count
+                count += 1
+            else:
+                # If current element is different from the majority candidate,
+                # decrement the count
+                count -= 1
+
+        return majority
+
+______________________________________________________________________________________________________________________________________________________________
+''' Учитывая целочисленный массив nums, верните true, если какое-либо значение появляется в массиве по крайней мере дважды, и верните false, если каждый 
+элемент различен. '''
+!!! Алгоритм Arrays & Hashing - Массивы и хэширование
+Input: nums = [1,2,3,1]
+Output: true
+Input: nums = [1,2,3,4]
+Output: false
+
+class Solution:
+    def containsDuplicate(self, nums: List[int]) -> bool:
+        ln = set()
+        for n in nums:
+            if n in ln:
+                return True
+            else:
+                ln.add(n)
+        return False
+
+def containsDuplicate(nums):
+    return len(nums) != len(set(nums))
+
+______________________________________________________________________________________________________________________________________________________________
+''' Учитывая строку s, содержащую только символы '(', ')', '{', '}', '[' и ']', определите, является ли входная строка допустимой. '''
+!!! Алгоритм Stack - Стек
+
+Input: s = "()"
+Output: true
+Input: s = "(]"
+Output: false
+
+class Solution:
+    def isValid(self, s: str) -> bool:
+        stack_fulch = []
+        map_closedch = {')': '(', '}': '{', ']': '['}
+        
+        for char in s:
+            if char in map_closedch and stack_fulch:
+                top_char = stack_fulch.pop()
+                if map_closedch[char] != top_char:
+                    return False
+            else:
+                stack_fulch.append(char)
+        return not stack_fulch
+
+______________________________________________________________________________________________________________________________________________________________
+''' Учитывая массив целых чисел nums, отсортированный в порядке возрастания, и целочисленный целевой объект, напишите функцию для поиска целевого объекта в 
+nums. Если целевой объект существует, то верните его индекс. В противном случае верните -1. '''
+!!! Алгоритм Binary Search - Бинарный поиск
+
+class Solution:
+    def search(self, nums: List[int], target: int) -> int:
+        low = 0
+        high = len(nums)-1
+        while low <= high:
+            mid = (low + high)
+            guess = nums[mid]
+            if guess == target:
+                return mid
+            if guess > target:
+                high = mid - 1
+            else:
+                low = mid + 1
+        return -1
+
+______________________________________________________________________________________________________________________________________________________________
+''' Вам предоставляется массив цен, где prices[i] - это цена данной акции на i-й день.Вы хотите максимизировать свою прибыль, выбрав один день для покупки 
+одной акции и выбрав другой день в будущем для продажи этой акции. '''
+!!! Алгоритм Sliding Window - Скользящее окно
+
+Input: prices = [7,1,5,3,6,4]
+Output: 5
+
+class Solution:
+    def maxProfit(self, prices: List[int]) -> int:
+        if not prices or len(prices) < 2:
+            return 0 
+
+        left, right = 0, 1
+        max_profit = 0
+        while right < len(prices):
+            if prices[right] <= prices[left]:
+                left = right
+                right += 1
+            else:
+                max_profit = max(max_profit, prices[right] - prices[left])
+                right += 1
+        return max_profit
+
+def max_profit(prices):
+    if not prices or len(prices) < 2:
+        return 0
+
+    # Инициализация переменных
+    min_price = prices[0]
+    max_profit = 0
+
+    # Проход по массиву цен
+    for price in prices[1:]:
+        # Обновление минимальной цены покупки
+        min_price = min(min_price, price)
+        
+        # Обновление максимальной прибыли, если продажа с текущей ценой приносит большую прибыль
+        max_profit = max(max_profit, price - min_price)
+
+    return max_profit
+
+class Solution(object):
+    def maxProfit(self, prices):
+        profit = 0
+        buy = prices[0]
+        for sell in prices[1:]:
+            if sell > buy:
+                profit = max(profit, sell - buy)
+            else:
+                buy = sell
+        
+        return profit
+
+______________________________________________________________________________________________________________________________________________________________
+''' Учитывая заголовок односвязного списка, переверните список и верните перевернутый список. '''
+!!! Алгоритм Linked List - Связанный список
+
+Input: head = [1,2,3,4,5]
+Output: [5,4,3,2,1]
+
+# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+class Solution:
+    def reverseList(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        curr = head
+        prev = None
+        while curr is not None:
+            next_node = curr.next
+            curr.next = prev
+            prev = curr
+            curr = next_node
+        return prev
+
+______________________________________________________________________________________________________________________________________________________________
+''' Учитывая корень двоичного дерева, инвертируйте дерево и верните его корень. '''
+!!! Алгоритм Trees - Дерево
+# Definition for a binary tree node.
+# class TreeNode:
+#     def __init__(self, val=0, left=None, right=None):
+#         self.val = val
+#         self.left = left
+#         self.right = right
+class Solution:
+    def invertTree(self, root: Optional[TreeNode]) -> Optional[TreeNode]:
+        if root is None:
+            return None
+        
+        queue = deque([root])
+        
+        while queue:
+            node = queue.popleft()
+
+            node.left, node.right = node.right, node.left
+
+            if node.left:
+                queue.append(node.left)
+            if node.right:
+                queue.append(node.right)
+        
+        return root
+
+class Solution:
+    def invertTree(self, root: Optional[TreeNode]) -> Optional[TreeNode]:
+        if not root: #Base Case
+            return root
+        self.invertTree(root.left) #Call the left substree
+        self.invertTree(root.right)  #Call the right substree
+        # Swap the nodes
+        root.left, root.right = root.right, root.left
+        return root # Return the root
+
