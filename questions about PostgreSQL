@@ -231,12 +231,203 @@
         # Вывод результата запроса
         print(result)
 
---> Что такое сессия SQLAlchemy и как ее использовать?
+--> Как работает автоматическая транзакция в sqlalchemy?
+    - В SQLAlchemy автоматическое управление транзакциями обычно
+    происходит с использованием контекстных менеджеров, таких как
+    Session. SQLAlchemy предоставляет объект Session для работы с
+    базой данных и управления транзакциями.
 
+--> Что такое сессия SQLAlchemy и как ее использовать?
+    - В SQLAlchemy, сессия (Session) представляет собой основной механизм
+    для работы с базой данных и управления транзакциями. Сессия 
+    обеспечивает контекст для взаимодействия с базой данных,
+    позволяя выполнять операции чтения, записи и изменения в
+    контролируемой транзакции.
+    1) Создание объекта Session:
+        from sqlalchemy import create_engine
+        from sqlalchemy.orm import sessionmaker
+        # Создание объекта Engine для подключения к базе данных
+        engine = create_engine('sqlite:///:memory:')
+        # Создание объекта Session с привязкой к Engine
+        Session = sessionmaker(bind=engine)
+        # Создание экземпляра Session
+        session = Session()
+    2) Открытие и закрытие сессии:
+        # Открытие сессии
+        session = Session()
+        # ...выполнение операций с базой данных...
+        # Закрытие сессии
+        session.close()
+    3) Контекстный менеджер with для автоматического управления транзакциями:
+        from sqlalchemy import create_engine
+        from sqlalchemy.orm import sessionmaker
+        engine = create_engine('sqlite:///:memory:')
+        Session = sessionmaker(bind=engine)
+        # Использование сессии в контекстном менеджере
+        with Session() as session:
+            # Весь код внутри этого блока будет выполняться в рамках одной транзакции
+            # ...выполнение операций с базой данных...
+            # Транзакция будет автоматически зафиксирована или откатана при выходе из блока
 
 --> Какие типы отношений поддерживаются в SQLAlchemy?
+    1) Один ко многим (One-to-Many):
+        from sqlalchemy import ForeignKey
+        from sqlalchemy.orm import relationship
+        class Author(Base):
+            __tablename__ = 'authors'
+            id = Column(Integer, primary_key=True)
+            name = Column(String)
+            books = relationship('Book', back_populates='author')
+        class Book(Base):
+            __tablename__ = 'books'
+            id = Column(Integer, primary_key=True)
+            title = Column(String)
+            author_id = Column(Integer, ForeignKey('authors.id'))
+            author = relationship('Author', back_populates='books')
+    2) Многие ко многим (Many-to-Many):
+        from sqlalchemy import Table, Column, Integer, ForeignKey
+        from sqlalchemy.orm import relationship
+        association_table = Table('association', Base.metadata,
+            Column('student_id', Integer, ForeignKey('students.id')),
+            Column('course_id', Integer, ForeignKey('courses.id'))
+        )
+        class Student(Base):
+            __tablename__ = 'students'
+            id = Column(Integer, primary_key=True)
+            name = Column(String)
+            courses = relationship('Course', secondary=association_table, back_populates='students')
+        class Course(Base):
+            __tablename__ = 'courses'
+            id = Column(Integer, primary_key=True)
+            title = Column(String)
+            students = relationship('Student', secondary=association_table, back_populates='courses')
+    
+    3) Один к одному (One-to-One):
+        class User(Base):
+            __tablename__ = 'users'
+            id = Column(Integer, primary_key=True)
+            username = Column(String, unique=True)
+            account = relationship('Account', uselist=False, back_populates='user')
+        
+        class Account(Base):
+            __tablename__ = 'accounts'
+            id = Column(Integer, primary_key=True)
+            user_id = Column(Integer, ForeignKey('users.id'), unique=True)
+            user = relationship('User', back_populates='account')
+       4) Самосвязь (Self-Referential):
+            class Category(Base):
+                __tablename__ = 'categories'
+                id = Column(Integer, primary_key=True)
+                name = Column(String)
+                parent_id = Column(Integer, ForeignKey('categories.id'))
+                children = relationship('Category', backref=backref('parent', remote_side=[id]))
 
 --> Как в SQLAlchemy обеспечивается безопасность от инъекций SQL?
+    - SQLAlchemy предоставляет множество механизмов для предотвращения 
+    инъекций SQL и обеспечения безопасности при выполнении запросов.
+    Основные методы включают использование параметризованных запросов
+    и методов, предоставляемых самим SQLAlchemy.
+    1) Параметризованные запросы (Parameterized Queries):
+    - Вместо вставки значений напрямую в SQL-запрос, используйте параметры,
+    которые автоматически обрабатываются SQLAlchemy. Это предотвращает
+    возможность внедрения зловредного SQL-кода.
+        # Плохой способ (подвержен инъекциям SQL)
+        username = "admin'; DROP TABLE users; --"
+        result = session.execute(f"SELECT * FROM users WHERE username = '{username}'")
+        # Хороший способ (параметризованный запрос)
+        result = session.execute("SELECT * FROM users WHERE username = :username", {'username': 'admin'})
+    2) ORM и методы фильтрации:
+    - При использовании ORM SQLAlchemy, используйте методы фильтрации, 
+    предоставляемые SQLAlchemy, которые автоматически обрабатывают 
+    параметры запроса.
+        # Плохой способ
+        username = "admin'; DROP TABLE users; --"
+        user = session.query(User).filter(f"username = '{username}'").first()
+        # Хороший способ
+        user = session.query(User).filter_by(username='admin').first()
+    3) Использование ORM и связей:
+    - При работе с связями в ORM, используйте методы, предоставляемые 
+    SQLAlchemy, чтобы автоматически обрабатывать связи и параметры.
+        # Плохой способ
+        user_id = "1 OR 1=1"
+        books = session.query(Book).filter(f"author_id = {user_id}")
+        # Хороший способ
+        books = session.query(Book).filter_by(author_id=1)
+    4) Использование выражений SQLAlchemy:
+    - Используйте выражения SQLAlchemy для построения запросов,
+    обеспечивая безопасность от инъекций SQL.
+        from sqlalchemy import text
+        # Плохой способ
+        username = "admin'; DROP TABLE users; --"
+        result = session.execute(text(f"SELECT * FROM users WHERE username = '{username}'"))
+        # Хороший способ (используя выражение SQLAlchemy)
+        result = session.execute(text("SELECT * FROM users WHERE username = :username"), {'username': 'admin'})
+    5) Использование ORM и NamedTuple:
+    - Используйте NamedTuple вместо строк в запросах, чтобы обеспечить 
+    типизированные параметры и предотвратить инъекции.
+        from sqlalchemy.orm import load_only
+        # Плохой способ
+        columns = "username, password"
+        user = session.query(User).options(load_only(*columns.split(', '))).filter_by(username='admin').first()
+        # Хороший способ (используя NamedTuple)
+        columns = ['username', 'password']
+        user = session.query(User).options(load_only(*columns)).filter_by(username='admin').first()
 
 --> Как использовать индексы в SQLAlchemy?
-
+    - SQLAlchemy предоставляет возможности для создания индексов в таблицах
+    базы данных. Индексы в SQLAlchemy могут быть определены на уровне
+    модели с использованием различных классов и параметров.
+    1) Определение индекса на уровне модели:
+        from sqlalchemy import create_engine, Column, Integer, String, Index
+        from sqlalchemy.ext.declarative import declarative_base
+        Base = declarative_base()
+        class User(Base):
+            __tablename__ = 'users'
+            id = Column(Integer, primary_key=True)
+            name = Column(String)
+            email = Column(String)
+            # Пример определения индекса на столбце 'email'
+            email_index = Index('idx_email', email)
+    2) Определение составного индекса:
+        class User(Base):
+        __tablename__ = 'users'
+        id = Column(Integer, primary_key=True)
+        name = Column(String)
+        email = Column(String)
+        # Пример определения составного индекса на столбцах 'name' и 'email'
+        name_email_index = Index('idx_name_email', name, email)
+    3) Определение уникального индекса:
+        class User(Base):
+        __tablename__ = 'users'
+        id = Column(Integer, primary_key=True)
+        name = Column(String)
+        email = Column(String, unique=True)  # Уникальный индекс на столбце 'email'
+    4) Использование встроенного параметра index в Column:
+        class User(Base):
+        __tablename__ = 'users'
+        id = Column(Integer, primary_key=True)
+        name = Column(String)
+        email = Column(String, index=True)  # Индекс на столбце 'email'
+    5) Определение индекса с использованием текстового SQL:
+        from sqlalchemy import text
+        class User(Base):
+            __tablename__ = 'users'
+            id = Column(Integer, primary_key=True)
+            name = Column(String)
+            email = Column(String)
+            # Определение индекса с использованием текстового SQL
+            Index('idx_email_upper', text("UPPER(email)"))
+    6) Создание индекса после создания таблицы:
+        from sqlalchemy import create_engine, MetaData
+        engine = create_engine('sqlite:///:memory:')
+        metadata = MetaData()
+        users = Table('users', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('name', String),
+            Column('email', String),
+        )
+        # Создание таблицы без индекса
+        metadata.create_all(engine)
+        # Создание индекса после создания таблицы
+        email_index = Index('idx_email', users.c.email)
+        email_index.create(engine)
