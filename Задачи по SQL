@@ -1,0 +1,60 @@
+
+
+---------------------------------------------------- Задача ----------------------------------------------------
+
+У вас есть таблица Employees с полями id, name, department, и salary.
+
+1) Выведите список всех сотрудников и их отделов:
+SELECT name, department
+FROM Employees;
+
+2) Выведите список всех уникальных отделов:
+SELECT DISTINCT department
+FROM Employees;
+
+3) Выведите среднюю зарплату по всем отделам:
+SELECT AVG(salary) AS avg_salary
+FROM Employees;
+
+4) Выведите имя и зарплату сотрудников, у которых зарплата выше средней зарплаты по всем сотрудникам:
+SELECT name, salary
+FROM Employees
+WHERE salary > (SELECT AVG(salary) FROM Employees);
+
+5) Выведите количество сотрудников в каждом отделе:
+SELECT department, COUNT(*) AS num_employees
+FROM Employees
+GROUP BY department;
+
+6) Удалите из таблицы все записи о сотрудниках, у которых зарплата меньше 3000:
+DELETE FROM Employees
+WHERE salary < 3000;
+
+
+---------------------------------------------------- Задача ----------------------------------------------------
+
+На внимателььность
+Дана пустая таблица publisher с колонками id и name. На id стоит автоинкремент, а Синтаксис name имеет 
+тип varchar(40). Какие из следующих запросов корректно отработают:
+
+INSERT INTO publisher (name) VALUES ('OREILLY');
+INSERT INTO publisher (name) VALUES ('О Reilly');
+INSERT INTO publisher (name) VALUES ('O'Reilly');
+INSERT INTO publisher (name) VALUES ('O-Reilly');
+
+'
+Ответ: 1, 2, 4
+
+
+---------------------------------------------------- Задача ----------------------------------------------------
+
+UPDATE products SET sales_date &gt;
+(SELECT SUM(qty * price)
+FROM sales
+WHERE sales.book_id = books.id
+ AND sales.date BETWEEN '26/04/1999' AND '26/05/1999')
+
+1) Вы не можете использовать арифметические операторы для функции SUM() (например SUM(qty * price))
+2) Следует использовать знак (=) для подзапроса
+3) Вы не можете использовать подзапрос для SET внутри оператора UPDATE
+4) Ключевое слово BETWEEN нельзя использовать для символов или дат

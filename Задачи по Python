@@ -1,0 +1,134 @@
+
+
+
+---------------------------------------------------- Задача ----------------------------------------------------
+Имеются текст text и подстрока st. Напишите программу, которая находит индекс первого вхождения st в text.
+Брутфорсный подход – создать вложенный цикл:
+
+def find_st(text, st):
+    n = len(text)
+    m = len(st)
+    for i in range(n - m + 1):
+        j = 0
+        while j < m and text[i+j] == st[j]:
+            j += 1
+        if j == m:
+            return i
+    return -1
+
+Временная сложность этого алгоритма O(nm), где n – длина текста, а m – длина подстроки. Эффективнее использовать 
+один из специальных алгоритмов поиска подстроки – Бойера-Мура, Рабина-Карпа или Кнута-Морриса-Пратта. 
+Воспользуемся алгоритмом Рабина-Карпа – его преимущество в том, что хеши вычисляются очень быстро, а сравнивать 
+строки приходится только при совпадении хешей. Это значительно ускоряет поиск по сравнению с перебором всех срезов подряд:
+
+import functools
+
+def rabin_karp(text, st):
+    if len(st) > len(text):
+        return -1 
+    BASE = 33
+    text_hash = functools.reduce(lambda h, c: h * BASE + ord(c), text[:len(st)], 0)
+    st_hash = functools.reduce(lambda h, c: h * BASE + ord(c), st, 0)
+    power_st = BASE**max(len(st) - 1, 0) 
+    for i in range(len(st), len(text)):
+        if text_hash == st_hash and text[i - len(st):i] == st:
+            return i - len(st) 
+        text_hash -= ord(text[i - len(st)]) * power_st
+        text_hash = text_hash * BASE + ord(text[i])
+    if text_hash == st_hash and text[-len(st):] == st:
+        return len(text) - len(st)
+    return -1 
+
+text = "В роще-чаще рыщет ящер, ищет пищи подходящей"
+st = "ще"
+print(rabin_karp(text, st))
+
+
+
+---------------------------------------------------- Задача ----------------------------------------------------
+'''дан бинарный масив из нулей и единиц, найти максимальную длину подмассива из единиц при условии, что один ноль можно заменить на единицу'''
+
+# Функция, которая находит максимальную длину подмассива из единиц в массиве.
+def find_max_length_of_ones(arr):
+    max_len = 0          # Инициализация переменной для максимальной длины подмассива
+    current_len = 0      # Инициализация переменной для текущей длины текущего подмассива
+
+    for num in arr:
+        if num == 1:
+            current_len += 1            # Увеличиваем текущую длину, если встречается 1
+            max_len = max(max_len, current_len)  # Обновляем максимальную длину, если текущая длина больше
+        else:
+            current_len = 0     # Сбрасываем текущую длину, если встречается 0
+
+    return max_len
+
+
+# Функция, которая итеративно проходит по массиву, заменяет 0 на 1, вызывает функцию find_max_length_of_ones,
+# заносит результат в счетчик, затем возвращает значение обратно на 0,
+# и если результат больше текущего значения счетчика, обновляет его.
+def find_max_length_with_one_replacement(arr):
+    max_len = 0
+
+    for i in range(len(arr)):
+        if arr[i] == 0:
+            arr[i] = 1  # Заменяем 0 на 1
+            current_len = find_max_length_of_ones(arr)
+            max_len = max(max_len, current_len)
+            arr[i] = 0  # Возвращаем обратно 1 на 0
+
+    return max_len
+
+# Пример использования:
+binary_array = [1, 0, 1, 1, 0, 1, 1, 1, 0, 1]
+find_max_length_with_one_replacement(binary_array)
+# Дано [0,0,0,1,0,1,1,1,1,0,1]
+
+---------------------------------------------------- Задача ----------------------------------------------------
+'''Учитывая строку s, найдите длину самой длинной подстроки без повторяющихся символов.'''
+Input: s = "abcabcbb"
+Output: 3
+Explanation: The answer is "abc", with the length of 3.
+
+class Solution(object):
+    def lengthOfLongestSubstring(self, s):
+        res_str = ""
+        res_list = []
+        _max = 0
+        for i, symb in enumerate(s):
+            res_str += symb
+            for symb_ in s[i+1:]:
+                if symb_ not in res_str:
+                    res_str += symb_
+                else:
+                    break
+            if len(res_str) > _max:
+                _max = len(res_str)
+            res_str = ""
+        return _max
+# через множество и while
+class Solution(object):
+    def lengthOfLongestSubstring(self, s):
+        char_set = set()
+        _max = 0
+        start = 0
+
+        for i, symb in enumerate(s):
+            while symb in char_set:
+                char_set.remove(s[start])
+                start += 1
+
+            char_set.add(symb)
+            _max = max(_max, i - start + 1)
+
+        return _max
+# через один цикл
+class Solution:
+    def lengthOfLongestSubstring(self, s: str) -> int:
+        start = result = 0
+        seen = {}
+        for i, letter in enumerate(s):
+            if seen.get(letter, -1) >= start:
+                start = seen[letter] + 1
+            result = max(result, i - start + 1)
+            seen[letter] = i
+        return result

@@ -1,0 +1,59 @@
+
+
+---------------------------------------------------- Задача ----------------------------------------------------
+Реализуйте CRUD (Create, Read, Update, Delete) операции для постов и комментариев.
+Определение моделей в файле models.py вашего приложения:
+
+from django.db import models
+
+class Post(models.Model):
+    title = models.CharField(max_length=100)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class Comment(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+Создание представлений для обработки CRUD операций в файле views.py вашего приложения:
+
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Post, Comment
+from .forms import PostForm, CommentForm
+
+def post_list(request):
+    posts = Post.objects.all()
+    return render(request, 'post_list.html', {'posts': posts})
+
+def post_detail(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    return render(request, 'post_detail.html', {'post': post})
+
+def post_create(request):
+    if request.method == 'POST':
+        form = PostForm(request.POST)
+        if form.is_valid():
+            post = form.save()
+            return redirect('post_detail', pk=post.pk)
+    else:
+        form = PostForm()
+    return render(request, 'post_form.html', {'form': form})
+
+def post_update(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    if request.method == 'POST':
+        form = PostForm(request.POST, instance=post)
+        if form.is_valid():
+            post = form.save()
+            return redirect('post_detail', pk=post.pk)
+    else:
+        form = PostForm(instance=post)
+    return render(request, 'post_form.html', {'form': form})
+
+def post_delete(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    if request.method == 'POST':
+        post.delete()
+        return redirect('post_list')
+    return render(request, 'post_confirm_delete.html', {'post': post})
