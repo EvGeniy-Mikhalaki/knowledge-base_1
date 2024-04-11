@@ -1,0 +1,86 @@
+# @set_responses(Id)
+    # async def delete(self, project_id: Id, user: UserDB = current_user, force: bool = Query(False, description="Флаг подтверждения удаления")):
+    #     """
+    #     Удаление проекта.\f.
+
+    #     :param project_id: Идентификатор проекта
+    #     :param user: Объект пользователя
+    #     :return: Идентификатор удаленного объекта
+    #     """
+
+    #     data_ws_train = await workspace.Workspace().get(project_id=project_id,
+    #                                                     workspace_type='train')
+
+    #     data_ws_predict = await workspace.Workspace().get(project_id=project_id,
+    #                                                       workspace_type='predict')
+
+    #     data_ds_model = await ds_model.DSModel().get(project_id=project_id,
+    #                                                  user=user)
+
+    #     data_dashboard = await dashboard.Dashboard().get(project_id=project_id,
+    #                                                      user=user)
+
+    #     data_report = await report.Report().get(project_id=project_id,
+    #                                             user=user)
+
+    #     data_connector = await connection.connector.Connector().get(project_id=project_id,
+    #                                                                 user=user)
+
+    #     if not force:
+
+    #         msg = "Вы уверены что хотите удалить проект?\n"
+    #         if data_ws_train or data_ws_predict or data_ds_model or data_dashboard or data_report or data_connector:
+    #             msg += "И следующие объекты принадлежащие проекту: \n"
+
+    #         if data_ws_train:
+    #             msg += "Рабочие области:\n"
+    #             for elem_ws_train in data_ws_train:
+    #                 msg += str(elem_ws_train.name) + '\n'
+
+    #             for elem_ws_predict in data_ws_predict:
+    #                 msg += str(elem_ws_predict.name) + '\n'
+            
+    #         if data_ds_model:
+    #             msg += "Модели:\n"
+    #             for elem_ds_model in data_ds_model:
+    #                 msg += str(elem_ds_model.name) + '\n'
+
+    #         if data_dashboard:
+    #             msg += "Дашборды:\n"
+    #             for elem_dashboard in data_dashboard:
+    #                 msg += str(elem_dashboard.name) + '\n'
+
+    #         if data_report:
+    #             msg += "Отчеты:\n"
+    #             for elem_report in data_report:
+    #                 msg += str(elem_report.name) + '\n'
+
+    #         if data_connector:
+    #             msg += "Коннектор:\n"
+    #             for elem_connector in data_connector:
+    #                 msg += str(elem_connector.name) + '\n'
+
+    #         raise HTTPException(status_code=400, detail=msg)
+        
+    #     for elem_ws_train in data_ws_train:
+    #         del_elem = await workspace.Workspace().delete(project_id=project_id, workspace_id=elem_ws_train.id, user=user)
+
+    #     for elem_ws_predict in data_ws_predict:
+    #         del_elem = await workspace.Workspace().delete(project_id=project_id, workspace_id=elem_ws_predict.id, user=user)
+
+    #     for elem_ds_model in data_ds_model:
+    #         file_id = elem_ds_model.directory.id
+    #         del_ds_model = await ds_model.DSModel().delete(project_id=project_id, model_id=elem_ds_model.id, user=user)
+    #         del_fs = await file.fs.FS().delete(file_id=file_id, user=user)
+
+    #     for elem_dashboard in data_dashboard:
+    #         del_dashboard = await dashboard.Dashboard().delete(project_id=project_id, dashboard_id=elem_dashboard.id, user=user)
+
+    #     for elem_report in data_report:
+    #         del_report = await report.Report().delete(project_id=project_id, report_id=elem_report.id, user=user)
+        
+    #     for elem_connector in data_connector:
+    #         del_connector = await connection.connector.Connector().delete(id=elem_connector.id, user=user)
+
+    #     return await super().delete(project_id, user)
+    # ----------------------------------------------------------------------------------------
