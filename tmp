@@ -84,3 +84,39 @@
 
     #     return await super().delete(project_id, user)
     # ----------------------------------------------------------------------------------------
+# def pars_data_region(data_pars: ParsRegionIn) -> list:
+#     ret_data = []
+#     region_data = RegionDataOut()
+    
+#     for row in data_pars.data_for_pars:
+#         current_region = row[data_pars.i_region]
+        
+#         if region_data is None:
+#             region_data = {'name': current_region,
+#                            'number_le': 0,
+#                            'number_company': 0,
+#                            'number_bankruptcy': 0,
+#                            'amount_debt': 0,
+#                            'amount_need_capital': 0,
+#                            'amount_repayment': 0}
+        
+#         region_data['number_le'] += 1
+        
+#         if float(row[data_pars.i_company]) > 0:
+#             region_data['number_company'] += 1
+        
+#         if float(row[data_pars.i_bankruptcy]) < 0:
+#             region_data['number_bankruptcy'] += 1
+
+#         region_data['amount_debt'] += float(row[data_pars.i_tax_arrears])
+#         region_data['amount_need_capital'] += float(row[data_pars.i_need_capital])
+#         region_data['amount_repayment'] += float(row[data_pars.i_repayment])
+
+#         if current_region != region_data['name']:
+#             ret_data.append(region_data)
+#             region_data = None
+
+#     if region_data is not None:
+#         ret_data.append(region_data)
+
+#     return ret_data
