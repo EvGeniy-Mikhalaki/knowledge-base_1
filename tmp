@@ -120,3 +120,35 @@
 #         ret_data.append(region_data)
 
 #     return ret_data
+
+
+from service_template.src.schemas.user_schema import UserDB
+from api_rest.api_manager.handlers.file.datasets import Dataset
+from api_rest.api_manager.schemas.dataset_info_schema import DatasetInfoSchema
+from api_rest.api_manager.handlers.defaults.default_resources import \
+    DefaultPostgresqlResource
+
+from ..defaults.default_router import set_responses
+from ..user.apiusers import current_user
+
+class DatasetInfo(DefaultPostgresqlResource):
+    URL_PATH = '/dataset-info'
+    METHODS = ['GET']
+    TAGS = ['Датасеты']
+    
+    @set_responses(DatasetInfoSchema, methods=['GET'])
+    async def get(
+        self,
+        user: UserDB = current_user,
+    ) -> DatasetInfoSchema:
+        """
+        Получение информации о датасете.
+
+        :param user: Объект пользователя\n
+        :return: Информация о датасетах
+        """
+        current_types = ["таблица", "изображение"]
+        return DatasetInfoSchema(types=current_types, 
+            single_field=False, 
+            number_files=1
+            )
