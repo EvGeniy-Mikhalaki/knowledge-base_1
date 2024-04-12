@@ -1,0 +1,335 @@
+"""
+Управление авторизацией пользователя.
+"""
+
+from typing import Any, Optional
+from secrets import token_hex
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from fastapi import Depends, Request, Response, HTTPException, status
+from fastapi_users import BaseUserManager, FastAPIUsers, db
+from fastapi_users.authentication import AuthenticationBackend, BearerTransport
+from fastapi_users.exceptions import InvalidID, InvalidResetPasswordToken
+from service_template.src.schemas.user_schema import UserCreate, UserDB
+
+from api_rest.api_manager.const import (
+    REFRESH_TOKEN_COOKIE_LIFETIME_SECONDS, TOKEN_TYPE, SECONDS_TOKEN_DECAY,
+    ACCESS_TOKEN_COOKIE_LIFETIME_SECONDS, API_SECRET_KEY, API_URL_PREFIX,
+    NUMB_BYTES_FOR_TOKEN, RESET_PASSWORD_LINK, EMAIL_TEXT_RESET_PASSWORD,
+)
+from api_rest.api_manager.handlers.user.token_manager import (
+    create_token, get_jwt_strategy, get_payload,
+)
+from api_rest.api_manager.handlers.user.db import get_user_db
+from api_rest.api_manager.schemas.auth_schema import AuthResponse
+from api_rest.logger_manager.connect import logger
+from api_rest.redis_manager.connect import redis
+from api_rest.utils.sending_to_channel import user_message_send
+
+
+limiter = Limiter(key_func=get_remote_address, default_limits=['100/minute'])
+depends_get_user_db = Depends(get_user_db)
+
+
+class UserManager(BaseUserManager[UserCreate, UserDB]):
+    """ Управление авторизацией пользователя."""
+
+    user_db_model = UserDB
+    reset_password_token_secret = API_SECRET_KEY
+    verification_token_secret = API_SECRET_KEY
+
+    async def on_after_register(
+        self,
+        user: UserDB,
+        request: Optional[Request] = None,
+    ):
+        """
+        Набор действий после регистрации.
+
+        :param user: Объект пользователя
+        :param request: Запрос
+        """
+        message = 'User {user_name} has registered.'.format(
+            user_name=user.name,
+        )
+        logger.debug(message)
+        # TODO added mkdir, send message
+
+    @limiter.limit('30/second')
+    async def on_after_forgot_password(
+        self,
+        user: UserDB,
+        token: str,
+        request: Optional[Request] = None,
+    ):
+        """
+        Набор действий при вызове ручки "forgot password".
+
+        :param user: Объект пользователя
+        :param token: Токен
+        :return: Response
+        :param request: Запрос
+        """
+        logger.debug(
+            'user email {email}'.format(email=user.email),
+            extra={'LOGGER_USER_ID': user.id},
+        )
+
+        reset_password_token = token_hex(NUMB_BYTES_FOR_TOKEN)
+
+        logger.debug('reset token {token}'.format(token=reset_password_token))
+
+        redis.setex(reset_password_token, SECONDS_TOKEN_DECAY, str(user.id))
+
+        recover_link = RESET_PASSWORD_LINK + reset_password_token
+
+        msg_send_mail = (
+            '{text_email}\nСсылка для восстановления: {link}'.format(
+                text_email=EMAIL_TEXT_RESET_PASSWORD,
+                link=recover_link,
+            )
+        )
+
+        answer = await user_message_send(user, 'Reset token', msg_send_mail)
+        if answer is None:
+            message = (
+                'Пользователь {user_name} не получил сообщение '
+                'о восстановлении пароля!'.format(user_name=user.name)
+            )
+            logger.error(message)
+        else:
+            message = (
+                'Пользователю {user_name} отправлено письмо с ссылкой '
+                'для восстановления, 15 мин '
+                'дейсвтия!'.format(user_name=user.name)
+            )
+            logger.debug(message)
+
+        return Response(status_code=status.HTTP_201_CREATED)
+
+    @limiter.limit('30/second')
+    async def reset_password(
+        self,
+        user: UserDB,
+        token: str,
+        request: Optional[Request] = None,
+    ):
+        """
+        Набор действий при вызове ручки "reset_password".
+
+        :param user: Не используется (через ID из Redis)
+        :param token: Не используется (через токен из ссылки)
+        :raises HTTPException: If the token is invalid or expired\n
+        :raises InvalidResetPasswordToken: If the token is invalid or expired\n
+        :return: Response
+        :param request: Запрос
+        """
+        json_data = await request.json()
+        token_reset_password = json_data.get('token')
+        if not token_reset_password or not json_data.get('password'):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='Пустое поле токена и/или введенного пароля!',
+            )
+
+        if redis.get(token_reset_password) is None:
+            logger.debug('The token has been redeemed.')
+            raise InvalidResetPasswordToken()
+        else:
+            user_id = (
+                str(redis.get(token_reset_password))
+                [1:].replace("'", '')
+            )
+
+        logger.debug(
+            '[reset_password] user id reset from redis {id}'.format(
+                id=user_id,
+            ),
+        )
+
+        try:
+            parsed_id = self.parse_id(user_id)
+        except InvalidID:
+            raise InvalidResetPasswordToken()
+
+        user_current = await self.get(parsed_id)
+        logger.debug(
+            '[reset_password] get user, email: {email}'.format(
+                email=user_current.email,
+            ),
+        )
+        await self._update(
+            user_current,
+            {'password': str(json_data.get('password'))},
+        )
+        redis.delete(token_reset_password)
+        logger.info('Пароль успешно изменен!')
+        return Response(status_code=status.HTTP_201_CREATED)
+
+    async def on_after_request_verify(
+        self,
+        user: UserDB,
+        token: str,
+        request: Optional[Request] = None,
+    ):
+        """
+        Функция набора действий после верификации пользователя.
+
+        :param user: Объект пользователя
+        :param token: Токен
+        :param request: Запрос
+        """
+        msg = (
+            'Verification requested for user {user_name}. '.format(
+                user_name=user.name,
+            )
+            + 'Verification token: {token}'.format(token=token)
+        )
+        answer = await user_message_send(user, 'Verification token', msg)
+        if answer is None:
+            logger.error(
+                'Пользователь не получил сообщение после верификации!',
+            )
+
+    def parse_id(self, user_id):
+        """
+        Функция парсинга user_id.
+
+        :param user_id: Идентификатор пользователя
+        :return: Идентификатор пользователя
+        """
+        return user_id
+
+
+async def get_user_manager(
+    user_db: db.SQLAlchemyUserDatabase = depends_get_user_db,
+):
+    """
+    Получение менеджера управления пользователями.
+
+    :param user_db: Адаптер БД
+    :yield: менеджер управления пользователями
+    """
+    yield UserManager(user_db)
+
+
+def set_cookies(response, access_token: str, refresh_token: str):
+    """
+    Установка куки в ответ.
+
+    :param response: Ответ
+    :param access_token: Маркер доступа
+    :param refresh_token: Токен обновления маркера доступа
+    """
+    response.set_cookie(
+        'access_token',
+        access_token,
+        httponly=False,
+        path='/',
+        max_age=ACCESS_TOKEN_COOKIE_LIFETIME_SECONDS,
+    )
+    response.set_cookie(
+        'refresh_token',
+        refresh_token,
+        httponly=True,
+        path='/',
+        max_age=REFRESH_TOKEN_COOKIE_LIFETIME_SECONDS,
+    )
+
+
+class AuthTransport(BearerTransport):
+    """
+    Класс транспорта для авторизации.
+    """
+
+    async def get_login_response(
+        self,
+        token: str,
+        response: Response,
+    ) -> Any:
+        """
+        Ответ при запросе на вход в приложение.
+
+        :param token: Токен
+        :param response: Ответ
+        :return: Ответ с установленным токеном
+        """
+        payload = get_payload(token)
+        if payload.is_refresh_token:
+            return None
+
+        refresh_token = create_token(payload, is_refresh_token=True)
+        set_cookies(response, token, refresh_token)
+        return AuthResponse(
+            access_token=token,
+            token_type=TOKEN_TYPE,
+        )
+
+    async def get_logout_response(self, response: Response) -> Any:
+        """
+        Ответ при запросе на выход из приложения.
+
+        :param response: Ответ
+        :return: Ответ
+        """
+        response.set_cookie(
+            'access_token',
+            '',
+            httponly=False,
+            path='/',
+            max_age=-1,
+        )
+        response.set_cookie(
+            'refresh_token',
+            '',
+            httponly=True,
+            path='/',
+            max_age=-1,
+        )
+        return response
+
+
+bearer_transport = AuthTransport(
+    tokenUrl='{prefix}/auth/login'.format(prefix=API_URL_PREFIX),
+)
+
+auth_backend = AuthenticationBackend(
+    name='jwt',
+    transport=bearer_transport,
+    get_strategy=get_jwt_strategy,
+)
+
+
+class APIUsers(FastAPIUsers):
+    """
+    Основной объект, связывающий воедино компонент \
+    аутентификации пользователей.
+    """
+
+    def __init__(self):
+        """
+        Вызывает родительский класс с нужной стратерией и транспортом \
+        по авторизации.
+        """
+        super().__init__(get_user_manager, [auth_backend])
+
+    def current_active_user(self):
+        """
+        Получение информации о пользователе.
+
+        :return: Информация о пользователе
+        """
+        return self.current_user(active=True)
+
+    def current_superuser(self):
+        """
+        Получение информации о пользователе, если он superuser.
+
+        :return: Информация о пользователе
+        """
+        return self.current_user(active=True, superuser=True)
+
+
+fastapi_users = APIUsers()
+current_user = Depends(fastapi_users.current_active_user())
+current_superuser = Depends(fastapi_users.current_superuser())
