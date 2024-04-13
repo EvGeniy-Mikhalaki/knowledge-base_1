@@ -69,3 +69,44 @@ async def user_message_send(user: UserDB, subject: str, message: str):
 #         i_repayment = find_index_of_column(columns, 'расчёт возвратности средств для кредиторов')
 #     )
 
+# async def save_db_region(db_session: AsyncSession, data: list):
+#     await db_session.execute(Region.__table__.delete())
+
+#     for elem in data:
+#         db_region = Region(
+#             name_ragion=str(elem.name_ragion),
+#             number_le=int(elem.number_le),
+#             number_company=int(elem.number_company),
+#             number_bankrupt=int(elem.number_bankruptcy),
+#             amount_debt=float(round(elem.amount_debt, 3)),
+#             amount_need_capital=float(round(elem.amount_need_capital, 3)),
+#             amount_repayment=float(round(elem.amount_repayment, 3)),
+#         )
+#         db_session.add(db_region)
+#     await db_session.commit()
+
+# async def save_db_region(db_session: AsyncSession, data: list):
+#     await db_session.execute(Region.__table__.delete())
+
+#     for elem in data:
+#         # Проверяем превышение чисел перед присвоением
+#         number_le = min(int(elem.number_le), 9223372036854775807)
+#         number_company = min(int(elem.number_company), 9223372036854775807)
+#         number_bankrupt = min(int(elem.number_bankruptcy), 9223372036854775807)
+#         amount_debt = float(round(elem.amount_debt, 3))
+#         amount_need_capital = float(round(elem.amount_need_capital, 3))
+#         amount_repayment = float(round(elem.amount_repayment, 3))
+
+#         # Создаем объект Region с проверенными значениями
+#         db_region = Region(
+#             name_ragion=str(elem.name_ragion),
+#             number_le=number_le,
+#             number_company=number_company,
+#             number_bankrupt=number_bankrupt,
+#             amount_debt=amount_debt,
+#             amount_need_capital=amount_need_capital,
+#             amount_repayment=amount_repayment,
+#         )
+#         db_session.add(db_region)
+
+#     await db_session.commit()
