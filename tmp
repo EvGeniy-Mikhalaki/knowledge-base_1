@@ -152,3 +152,34 @@ class DatasetInfo(DefaultPostgresqlResource):
             single_field=False, 
             number_files=1
             )
+
+async def parse_csv(file, chunk_size=5000):
+    reader = csv.reader(StringIO(file.decode('utf-8')))
+    columns = next(reader)
+    data = []
+
+    for i, row in enumerate(reader, start=1):
+        data.append(row)
+        if i % chunk_size == 0:
+
+            yield ParsRegionIn(
+                data_for_pars=data,
+                i_region=find_index_of_column(columns, 'Субъект'),
+                i_company=find_index_of_column(columns, '2022_прибыль'),
+                i_bankruptcy=find_index_of_column(columns, 'введена процедура банкротства/ликвидация'),
+                i_tax_arrears=find_index_of_column(columns, 'задолженность по налогам'),
+                i_need_capital=find_index_of_column(columns, 'потребность в оборотных средствах'),
+                i_repayment=find_index_of_column(columns, 'расчёт возвратности средств для кредиторов')
+            )
+            data = []
+
+    if data:
+        yield ParsRegionIn(
+            data_for_pars=data,
+            i_region=find_index_of_column(columns, 'Субъект'),
+            i_company=find_index_of_column(columns, '2022_прибыль'),
+            i_bankruptcy=find_index_of_column(columns, 'введена процедура банкротства/ликвидация'),
+            i_tax_arrears=find_index_of_column(columns, 'задолженность по налогам'),
+            i_need_capital=find_index_of_column(columns, 'потребность в оборотных средствах'),
+            i_repayment=find_index_of_column(columns, 'расчёт возвратности средств для кредиторов')
+        )
