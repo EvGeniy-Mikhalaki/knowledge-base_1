@@ -333,3 +333,43 @@ class APIUsers(FastAPIUsers):
 fastapi_users = APIUsers()
 current_user = Depends(fastapi_users.current_active_user())
 current_superuser = Depends(fastapi_users.current_superuser())
+
+
+# async def get_risks_by_region_industry(db_session: AsyncSession, region_name: str, industry_name: str) -> list:
+#     ret_risk = []
+#     region_db = await db_session.execute(select(Region).filter_by(name_ragion=region_name))
+#     region_entity = region_db.scalar_one_or_none()
+
+#     if region_entity: 
+#         if industry_name:
+#             industries = await db_session.execute(select(Industry).filter_by(region_id=region_entity.id, name=industry_name))
+#             industry_db = industries.scalar_one_or_none()
+#             industry_risk = IndustryRisk(name_industry=industry_name, risks=[])
+#             risks = await db_session.execute(select(Risk).filter_by(industry_id=industry_db.id))
+#             for i, db_risk in enumerate(risks.scalars().all()):
+#                 industry_risk.risks.append(
+#                     RiskResponse(
+#                         id=i,
+#                         key=db_risk.key,
+#                         name=db_risk.name,
+#                         value=db_risk.value,
+#                     )
+#                 )
+#             ret_risk.append(industry_risk)
+#         else:
+#             industries = await db_session.execute(select(Industry).filter_by(region_id=region_entity.id))
+#             for i, db_industry in enumerate(industries.scalars().all()):
+#                 industry_risk = IndustryRisk(name_industry=db_industry.name, risks=[])
+#                 risks = await db_session.execute(select(Risk).filter_by(industry_id=db_industry.id))
+#                 for i, db_risk in enumerate(risks.scalars().all()):
+#                     industry_risk.risks.append(
+#                         RiskResponse(
+#                             id=i,
+#                             key=db_risk.key,
+#                             name=db_risk.name,
+#                             value=db_risk.value,
+#                         )
+#                     )
+#                 ret_risk.append(industry_risk)
+
+#     return ret_risk
