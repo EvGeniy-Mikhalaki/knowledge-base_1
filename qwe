@@ -373,3 +373,89 @@ current_superuser = Depends(fastapi_users.current_superuser())
 #                 ret_risk.append(industry_risk)
 
 #     return ret_risk
+
+# async def get_json_main_indicators(all_regions: AllRegions) -> list:
+#     indicators_regions = []
+#     for i, region_response in enumerate(all_regions.regions, start=1):
+#         list_main_indicators = []
+#         income_dicts = [item for item in region_response.indicators[6].value if any(
+#             '_выручка' in key for key in item.keys()
+#             )
+#         ]
+#         profit_dicts = [item for item in region_response.indicators[6].value if any(
+#             '_прибыль' in key for key in item.keys()
+#             )
+#         ]
+#         creditworthiness_dicts = [item for item in region_response.indicators[6].value if any(
+#             '_кредиторская_задолженность' in key for key in item.keys()
+#             )
+#         ]
+#         asset_value_dicts = [item for item in region_response.indicators[6].value if any(
+#             '_стоимость_активов' in key for key in item.keys()
+#             )
+#         ]
+#         taxes_paid_dicts = [item for item in region_response.indicators[6].value if any(
+#             '_Postypilo' in key for key in item.keys()
+#             )
+#         ]
+#         taxes_debt_dicts = [item for item in region_response.indicators[6].value if any(
+#             '_Dolgi' in key for key in item.keys()
+#             )
+#         ]
+#         list_main_indicators.append(
+#             {
+#                 'id': 1,
+#                 'key': 'income',
+#                 'name': 'Выручка организаций',
+#                 'params': get_params_indicator(data=income_dicts)
+#             }
+#         )
+#         list_main_indicators.append(
+#             {
+#                 'id': 2,
+#                 'key': 'profit',
+#                 'name': 'Прибыль организаций',
+#                 'params': get_params_indicator(data=profit_dicts)
+#             }
+#         )
+#         list_main_indicators.append(
+#             {
+#                 'id': 3,
+#                 'key': 'creditworthiness',
+#                 'name': 'Кредиторская задолженность',
+#                 'params': get_params_indicator(data=creditworthiness_dicts)
+#             }
+#         )
+#         list_main_indicators.append(
+#             {
+#                 'id': 4,
+#                 'key': 'asset_value',
+#                 'name': 'Активы организации',
+#                 'params': get_params_indicator(data=asset_value_dicts)
+#             }
+#         )
+#         list_main_indicators.append(
+#             {
+#                 'id': 5,
+#                 'key': 'taxes_paid',
+#                 'name': 'Поступления по налогам',
+#                 'params': get_params_indicator(data=taxes_paid_dicts)
+#             }
+#         )
+#         list_main_indicators.append(
+#             {
+#                 'id': 6,
+#                 'key': 'taxes_debt',
+#                 'name': 'Долг организаций по налогам',
+#                 'params': get_params_indicator(data=taxes_debt_dicts)
+#             }
+#         )
+
+#         data_mi = {
+#             'id': i,
+#             'name_region': region_response.name,
+#             'main_indicators': list_main_indicators,
+#         }
+#         indicators_regions.append(dict(data_mi))
+
+#     return indicators_regions
